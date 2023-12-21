@@ -1,8 +1,8 @@
 import httpClient from '@/utils/axios'
 
-export const sliceStart = (formdata: FormData) => {
+export const sliceStart = (formdata: FormData, query: any) => {
   return httpClient({
-    url: '/startSliceHandle',
+    url: `/startSliceHandle${query ? `?subOffset=${query}` : ''}`,
     method: 'POST',
     data: formdata,
     headers: {

@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AudioItems: typeof import('./src/components/AudioItems.vue')['default']
-    copy: typeof import('./src/components/SnackBarTip copy.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SnackBarTip: typeof import('./src/components/SnackBarTip.vue')['default']

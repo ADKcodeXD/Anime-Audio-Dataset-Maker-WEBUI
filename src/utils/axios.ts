@@ -1,8 +1,7 @@
 import { useGlobalStore } from '@/stores/store'
 import axios, { AxiosResponse } from 'axios'
-
 const httpClient = axios.create({
-  baseURL: '/api'
+  baseURL: 'http://localhost:7896/'
 })
 
 // 请求拦截器

@@ -2,14 +2,36 @@
   <div class="flex-col flex h-full justify-start">
     <div>
       <p class="mb-4 text-sm">请选择需要识别的音频</p>
-      <v-file-input
-        accept="audio/wav, audio/mp3"
-        show-size
-        clearable
-        label="上传音频文件"
-        :modelValue="[wavFile || '']"
-        @update:modelValue="updateVal"
-      ></v-file-input>
+      <div>
+        <v-file-input
+          accept="audio/wav, audio/mp3"
+          show-size
+          clearable
+          label="上传音频文件"
+          :modelValue="[wavFile || {}]"
+          @update:modelValue="updateVal"
+        ></v-file-input>
+      </div>
+      <div class="w-full flex">
+        <v-file-input
+          accept=".srt,.ass"
+          show-size
+          clearable
+          style="width: 80%; margin-right: 10px"
+          label="上传字幕文件(可选)"
+          :modelValue="[subFile || {}]"
+          @update:modelValue="updateSub"
+        ></v-file-input>
+        <v-text-field
+          accept=".srt,.ass"
+          show-size
+          clearable
+          type="number"
+          style="width: 15%"
+          label="字幕偏移时间(ms)"
+          v-model="subOffset"
+        ></v-text-field>
+      </div>
     </div>
     <v-expansion-panels class="mb-4" color="black">
       <v-expansion-panel color="black" bg-color="black" title="详细设置" v-if="configTemp?.hfToken">
@@ -103,18 +125,20 @@ import { storeToRefs } from 'pinia'
 import _ from 'lodash-es'
 
 const wavFile = ref()
+const subFile = ref()
 const isLoading = ref(false)
 const { config } = storeToRefs(useGlobalStore())
 const { updateConfigFn, getConfigAndSave } = useGlobalStore()
 const configTemp = ref<Partial<ConfigType>>({})
-
+const subOffset = ref(0)
 const uploadWav = async () => {
   await updateConfig()
   isLoading.value = true
   const form = new FormData()
   form.append('file', wavFile.value)
+  form.append('subFile', subFile.value)
   try {
-    await sliceStart(form)
+    await sliceStart(form, subOffset.value)
   } finally {
     isLoading.value = false
   }
@@ -122,6 +146,10 @@ const uploadWav = async () => {
 
 const updateVal = (files: any[]) => {
   wavFile.value = files[0]
+}
+
+const updateSub = (files: any[]) => {
+  subFile.value = files[0]
 }
 
 const updateConfig = async () => {

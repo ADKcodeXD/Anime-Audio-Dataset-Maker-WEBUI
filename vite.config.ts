@@ -46,6 +46,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  build: {
+    outDir: './Web'
+  },
   // css
   css: {
     preprocessorOptions: {
@@ -53,16 +56,6 @@ export default defineConfig({
         charset: false,
         javascriptEnabled: true,
         additionalData: `@import "${resovePath('src/assets/main.scss')}";`
-      }
-    }
-  },
-  server: {
-    port: 5001,
-    proxy: {
-      '/api': {
-        target: 'http://0.0.0.0:7896/',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }
