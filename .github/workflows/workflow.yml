@@ -24,6 +24,23 @@ jobs:
         npm install -g npm
         npm install
 
+    - name: Generate version number
+      id: version
+      run: |
+        # 基础版本号
+        BASE_VERSION="1.0.0"
+
+        # 生成日期字符串 (格式: DD-MM-YY)
+        DATE_STR=$(date +'%d-%m-%y')
+
+        # 组合完整的版本号
+        FULL_VERSION="${BASE_VERSION}-${DATE_STR}"
+        echo "Full Version: $FULL_VERSION"
+
+        # 设置输出变量
+        echo "::set-output name=full_version::$FULL_VERSION"
+      shell: bash
+
     - name: Build
       run: npm run build
 
@@ -39,8 +56,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ steps.version.outputs.full_version }}
+        release_name: Release ${{ steps.version.outputs.full_version }}
         draft: false
         prerelease: false
 
