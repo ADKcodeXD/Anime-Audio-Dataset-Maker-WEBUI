@@ -52,7 +52,12 @@
       </div>
     </div>
     <v-expansion-panels class="mb-4" color="black">
-      <v-expansion-panel color="black" bg-color="black" title="详细设置" v-if="configTemp?.hfToken">
+      <v-expansion-panel
+        color="black"
+        bg-color="black"
+        title="详细设置"
+        v-if="configTemp?.pyannoteModelSetting"
+      >
         <template #text>
           <div class="p-2 flex flex-col">
             <div class="flex flex-col">
@@ -102,15 +107,6 @@
             </div>
             <div class="flex">
               <v-text-field
-                label="Hugging Face Token"
-                type="textInput"
-                class="mr-4"
-                :loading="isLoading"
-                v-model="configTemp.hfToken"
-              ></v-text-field>
-            </div>
-            <div class="flex">
-              <v-text-field
                 label="最小语音长度(ms)"
                 type="number"
                 class="mr-4"
@@ -157,7 +153,7 @@ const uploadWav = async () => {
   isLoading.value = true
   const form = new FormData()
   form.append('file', wavFile.value)
-  form.append('subFile', subFile.value)
+  if (subFile.value) form.append('subFile', subFile.value)
   try {
     await sliceStart(form, subOffset.value, language.value)
   } finally {

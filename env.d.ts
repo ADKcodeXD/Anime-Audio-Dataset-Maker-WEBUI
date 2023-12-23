@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 declare interface ConfigType {
-  hfToken: string
   pyannoteModelSetting: {
     clustering: {
       method: 'centroid'
