@@ -17,11 +17,29 @@
           accept=".srt,.ass"
           show-size
           clearable
-          style="width: 80%; margin-right: 10px"
+          style="width: 60%; margin-right: 10px"
           label="上传字幕文件(可选)"
           :modelValue="[subFile || {}]"
           @update:modelValue="updateSub"
         ></v-file-input>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <div class="mx-4">
+              <p class="text-xs mb-2">字幕语言(可选)</p>
+              <v-chip color="green" v-bind="props"> {{ language }} </v-chip>
+            </div>
+          </template>
+          <v-list v-model="language" @click:select="(item) => (language = item.id)">
+            <v-list-item
+              v-for="(item, index) in langs"
+              :key="index"
+              :value="item"
+              :disabled="item === language"
+            >
+              <v-chip color="green" class="mr-4">{{ item }}</v-chip>
+            </v-list-item>
+          </v-list>
+        </v-menu>
         <v-text-field
           accept=".srt,.ass"
           show-size
@@ -131,6 +149,9 @@ const { config } = storeToRefs(useGlobalStore())
 const { updateConfigFn, getConfigAndSave } = useGlobalStore()
 const configTemp = ref<Partial<ConfigType>>({})
 const subOffset = ref(0)
+const language = ref<any>('JP')
+const langs = ['JP', 'EN', 'ZH']
+
 const uploadWav = async () => {
   await updateConfig()
   isLoading.value = true
@@ -138,7 +159,7 @@ const uploadWav = async () => {
   form.append('file', wavFile.value)
   form.append('subFile', subFile.value)
   try {
-    await sliceStart(form, subOffset.value)
+    await sliceStart(form, subOffset.value, language.value)
   } finally {
     isLoading.value = false
   }

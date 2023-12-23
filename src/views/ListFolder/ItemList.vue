@@ -48,6 +48,10 @@
             :model-value="checkedArrs.length === audioItem.length"
             @update:model-value="checkedAll"
           ></v-checkbox>
+          <p class="mx-4 text-xs items-center flex" v-if="checkedArrs.length > 0">
+            当前已选中{{ checkedArrs.length }}条数据
+            <v-btn variant="plain" @click="resetAll">全部取消</v-btn>
+          </p>
           <p class="text-xs mr-2">
             {{
               params.order
@@ -57,6 +61,7 @@
                 : '点击按时长排序'
             }}
           </p>
+
           <v-btn
             :icon="params.order ? 'mdi-arrow-up-circle' : 'mdi-close-circle'"
             density="comfortable"
@@ -74,7 +79,15 @@
               }
             "
           ></v-btn>
-
+          <v-btn
+            :loading="isLoading"
+            variant="elevated"
+            color="error"
+            :disabled="checkedArrs.length === 0"
+            @click="deleteAudio"
+            class="mx-2"
+            >删除</v-btn
+          >
           <v-menu offset="2" location="right">
             <template v-slot:activator="{ props }">
               <v-btn
@@ -132,7 +145,7 @@
             ></v-slider>
           </div>
           <v-tooltip
-            text="示例：当前文件夹为 小原好美 文件名将会是 1_小原好美.wav 2_小原好美.wav 以此类推"
+            text="示例：当前文件夹为 小原好美 文件名将会是 小原好美_1.wav 小原好美_2.wav 以此类推"
           >
             <template v-slot:activator="{ props }">
               <v-btn
@@ -155,14 +168,7 @@
             :disabled="!currentSpeaker"
             >当前页一键移入标记的说话人</v-btn
           >
-          <v-btn
-            :loading="isLoading"
-            variant="elevated"
-            color="error"
-            :disabled="checkedArrs.length === 0"
-            @click="deleteAudio"
-            >删除</v-btn
-          >
+
           <v-btn
             :loading="isLoading"
             color="orange"
@@ -171,9 +177,8 @@
             @click="splitAudio"
             >分割音频</v-btn
           >
-          <div class="w-96">
+          <div class="w-96" v-if="currentAudio && checkedArrs.length === 1">
             <v-slider
-              v-if="currentAudio && checkedArrs.length === 1"
               thumb-label="always"
               color="blue"
               label="时间点选择(ms)"
@@ -196,6 +201,14 @@
                 ></v-text-field> </template
             ></v-slider>
           </div>
+          <v-btn
+            :loading="isLoading"
+            v-if="type === 'handled'"
+            color="orange"
+            variant="plain"
+            @click="showBertExport = true"
+            >导出为bert需要的数据集</v-btn
+          >
         </div>
       </div>
     </div>
@@ -220,6 +233,7 @@
         @seekedPlay="updateTime"
         @time-update="updateTime"
         @refresh="getItems"
+        @update-text-or-lang="updateTextOrLang"
         :ref="(el) => setElementRef(el, index)"
       />
     </div>
@@ -238,6 +252,32 @@
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" @click="showComfirm = false">取消</v-btn>
           <v-btn color="error" @click="confirmDelete">确认</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="showBertExport" persistent max-width="600px" :loading="isLoading">
+      <v-card>
+        <v-card-title>
+          <span class="headline">上传Bert配置文件</span>
+        </v-card-title>
+        <v-card-text>
+          <v-form>
+            <v-file-input
+              v-model="bertFile"
+              label="选择 YAML 文件"
+              accept=".yml, .yaml"
+              :loading="isLoading"
+            ></v-file-input>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" @click="showBertExport = false" :loading="isLoading"
+            >取消</v-btn
+          >
+          <v-btn color="blue darken-1" @click="exportByBeryConfigFn" :loading="isLoading"
+            >确定</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -272,6 +312,8 @@ const interval = ref(200)
 const refs = ref({})
 const currentSpeaker = ref()
 const showComfirm = ref(false)
+const showBertExport = ref(false)
+const bertFile = ref(null)
 const currentPlayItem = ref({})
 const { speakersFolders } = storeToRefs(useGlobalStore())
 const { openSnackBar, openSuccessSnackBar } = useGlobalStore()
@@ -303,6 +345,35 @@ const updateTime = () => {
   }
 }
 
+const exportByBeryConfigFn = async () => {
+  if (!bertFile.value[0]) openSnackBar('没有文件！')
+  const form = new FormData()
+  form.append('file', bertFile.value[0])
+  isLoading.value = true
+  try {
+    await exportByBeryConfig(form, props.folderName)
+    showBertExport.value = false
+    bertFile.value = null
+    openSuccessSnackBar('导出成功')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const updateTextOrLang = async ({ text, path, language }) => {
+  isLoading.value = true
+  try {
+    await updateTextOrLanguage(path, {
+      text,
+      language
+    })
+    await getItems()
+    openSuccessSnackBar('更新成功')
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const receive = async (item: AudioItems) => {
   if (!currentSpeaker.value) {
     openSnackBar('未选中目标说话人文件夹')
@@ -319,6 +390,7 @@ const receive = async (item: AudioItems) => {
       paths: [item.source],
       targetFolderName: currentSpeaker.value
     })
+    openSuccessSnackBar('操作成功')
     await getItems()
     focusItem?.focus(false)
   } finally {
@@ -375,6 +447,7 @@ const moveToFolder = async (targetFolderName) => {
       paths: checkedArrs.value.map((item) => item.source),
       targetFolderName
     })
+    openSuccessSnackBar('移动成功')
     await getItems()
   } finally {
     isLoading.value = false
@@ -385,6 +458,7 @@ const moveSingleAudio = async ({ source, targetFolderName }) => {
   isLoading.value = true
   try {
     await moveAudio({ paths: [source], targetFolderName })
+    openSuccessSnackBar('移动成功')
     await getItems()
   } finally {
     isLoading.value = false
@@ -398,6 +472,7 @@ const splitAudio = async () => {
       path: checkedArrs.value[0].source,
       splitPoint: currentAudio.value.time
     })
+    openSuccessSnackBar('分割成功')
     await getItems()
   } finally {
     isLoading.value = false
@@ -408,6 +483,7 @@ const deleteSingleAudio = async (source) => {
   isLoading.value = true
   try {
     await deleteAudios([source])
+    openSuccessSnackBar('删除成功')
     await getItems()
   } finally {
     isLoading.value = false
@@ -445,13 +521,29 @@ const getItems = async () => {
       api = listAllHandledAudioItems(params)
     }
     const { data } = await api
-    data.data.results.forEach((item) => (item.isChecked = false))
+    if (audioItem.value.length > 0) {
+      // compare two results and remain the checked state
+      data.data.results.forEach((item) => {
+        const target = audioItem.value.find((it) => item.source === it.source)
+        if (audioItem.value.find((it) => item.source === it.source)) {
+          item.isChecked = target.isChecked
+        } else {
+          item.isChecked = false
+        }
+      })
+    } else {
+      data.data.results.forEach((item) => (item.isChecked = false))
+    }
     audioItem.value = data.data.results
     total.value = data.data.total
     totalLength.value = data.data.totalLength
   } finally {
     isLoading.value = false
   }
+}
+
+const resetAll = () => {
+  audioItem.value.forEach((item) => (item.isChecked = false))
 }
 
 const focus = (index) => {

@@ -1,10 +1,14 @@
 import httpClient from '@/utils/axios'
 
-export const sliceStart = (formdata: FormData, query: any) => {
+export const sliceStart = (formdata: FormData, subOffset?: any, language?: any) => {
   return httpClient({
-    url: `/startSliceHandle${query ? `?subOffset=${query}` : ''}`,
+    url: `/startSliceHandle`,
     method: 'POST',
     data: formdata,
+    params: {
+      subOffset,
+      language
+    },
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -141,6 +145,29 @@ export const renameSingleFile = (path: string, name: string) => {
     data: {
       filePath: path,
       customName: name
+    }
+  })
+}
+
+export const updateTextOrLanguage = (path: string, { text, language }) => {
+  return httpClient({
+    url: 'updateTextOrLanguage',
+    method: 'POST',
+    data: {
+      filePath: path,
+      text: text,
+      language: language
+    }
+  })
+}
+
+export const exportByBeryConfig = (formdata: FormData, folderName: string) => {
+  return httpClient({
+    url: `/exportByBertConfig${folderName ? `?folderName=${folderName}` : ''}`,
+    method: 'POST',
+    data: formdata,
+    headers: {
+      'Content-Type': 'multipart/form-data'
     }
   })
 }

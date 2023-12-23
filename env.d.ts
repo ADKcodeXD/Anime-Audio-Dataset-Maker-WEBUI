@@ -41,7 +41,8 @@ declare interface AudioOperate {
 declare interface AudioItems {
   source: string
   fileName: string
-  audioText?: string
+  text?: string
+  language?: string
   isChecked: boolean
 }
 

@@ -96,6 +96,41 @@
         </v-list-item>
       </v-list>
     </v-menu>
+    <v-text-field
+      @click.stop
+      hide-details="auto"
+      label="字幕文本"
+      type="text"
+      variant="outlined"
+      density="comfortable"
+      ref="textfield"
+      v-model="audioItem.text"
+      @update:focused="submit"
+      v-on-key-stroke:Enter="
+        (e) => {
+          e.stopPropagation()
+          submit(false)
+        }
+      "
+    >
+      <template #prepend-inner>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-chip color="green" class="mr-4" v-bind="props"> {{ audioItem.language }} </v-chip>
+          </template>
+          <v-list :modelValue="audioItem.language" @click:select="changLang">
+            <v-list-item
+              v-for="(item, index) in langs"
+              :key="index"
+              :value="item"
+              :disabled="item === audioItem.language"
+            >
+              <v-chip color="green" class="mr-4" v-bind="props">{{ item }}</v-chip>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+    </v-text-field>
   </div>
 </template>
 <script setup lang="ts">
@@ -126,14 +161,18 @@ const emits = defineEmits([
   'focused',
   'seekingPlay',
   'onTimeUpdate',
-  'refresh'
+  'refresh',
+  'updateTextOrLang'
 ])
 
+const langs = ref(['JP', 'EN', 'ZH'])
 const target = ref()
 const fileName = ref()
 const audioInstance = ref()
+const textfield = ref()
 const srcLink = ref('')
 const tempName = ref('')
+const tempText = ref('')
 const isPlaying = ref(false)
 const needNextInner = ref(true)
 const fileNameFocus = ref(false)
@@ -154,6 +193,24 @@ onClickOutside(fileName, async () => {
     emits('refresh')
   }
 })
+
+const submit = (val) => {
+  if (val) tempText.value = props.audioItem.text
+  else if (props.audioItem.text && tempText.value !== props.audioItem.text) {
+    emits('updateTextOrLang', { path: props.audioItem.source, text: props.audioItem.text })
+    tempText.value = ''
+  }
+}
+
+const changLang = (item) => {
+  if (props.audioItem.text && tempText.value !== props.audioItem.text) {
+    emits('updateTextOrLang', {
+      path: props.audioItem.source,
+      language: item.id,
+      text: props.audioItem.text
+    })
+  } else emits('updateTextOrLang', { path: props.audioItem.source, language: item.id })
+}
 
 const receive = () => {
   emits('recive', props.audioItem)
