@@ -168,6 +168,7 @@ export const exportByBeryConfig = (formdata: FormData, folderName: string) => {
     data: formdata,
     headers: {
       'Content-Type': 'multipart/form-data'
-    }
+    },
+    responseType: 'arraybuffer'
   })
 }
