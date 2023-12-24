@@ -325,8 +325,10 @@ const getAudioTime = () => {
 onKeyStroke(
   [' ', 'SpaceBar', 'Space'],
   (e) => {
-    e.preventDefault()
-    if (focused.value) onSpacePress()
+    if (focused.value) {
+      e.preventDefault()
+      onSpacePress()
+    }
   },
   { dedupe: true, target: target.value }
 )

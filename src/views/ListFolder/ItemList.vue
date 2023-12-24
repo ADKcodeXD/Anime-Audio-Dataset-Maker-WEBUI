@@ -22,19 +22,9 @@
             hide-details
             inset
             color="blue"
-            :disabled="isLoopPlay"
             :loading="isLoading"
             class="mr-4"
             label="开启连续播放(会自动播放下一个音频)"
-          ></v-switch>
-          <v-switch
-            v-model="isLoopPlay"
-            hide-details
-            inset
-            color="blue"
-            :loading="isLoading"
-            :disabled="isContinuePlay"
-            label="循环播放"
           ></v-switch>
         </div>
       </div>
@@ -220,7 +210,6 @@
         :audio-item="item"
         :currentSpeaker="currentSpeaker || currentSpeakerParent"
         :type="type"
-        :isLoopPlay="isLoopPlay"
         @up="focus(index - 1)"
         @down="focus(index + 1)"
         @ended="isContinuePlay ? focus(index + 1) : () => {}"
@@ -305,7 +294,6 @@ const params = reactive<PageParamsEntity>({
 const audioItem = ref<AudioItems[]>([])
 const isLoading = ref(false)
 const isContinuePlay = ref(false)
-const isLoopPlay = ref(false)
 const total = ref(0)
 const totalLength = ref(0)
 const interval = ref(200)
