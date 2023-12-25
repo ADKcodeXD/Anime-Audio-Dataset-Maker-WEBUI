@@ -322,6 +322,22 @@ const getAudioTime = () => {
   }
 }
 
+const loadData = async () => {
+  const data = await getResource(props.audioItem.source)
+  const blob = new Blob([data.data], {
+    type: 'aduio/wav'
+  })
+  const blobUrl = URL.createObjectURL(blob)
+  srcLink.value = blobUrl
+  audioInstance.value?.load()
+}
+
+const manualLoadData = () => {
+  if (targetIsVisible.value || srcLink.value) {
+    loadData()
+  }
+}
+
 onKeyStroke(
   [' ', 'SpaceBar', 'Space'],
   (e) => {
@@ -341,13 +357,7 @@ watchEffect(() => {
 
 watchEffect(async () => {
   if (targetIsVisible.value && !srcLink.value) {
-    const data = await getResource(props.audioItem.source)
-    const blob = new Blob([data.data], {
-      type: 'aduio/wav'
-    })
-    const blobUrl = URL.createObjectURL(blob)
-    srcLink.value = blobUrl
-    audioInstance.value?.load()
+    loadData()
   }
 })
 
@@ -362,7 +372,8 @@ defineExpose({
   playThisItem,
   pauseThisItem,
   focus,
-  getAudioTime
+  getAudioTime,
+  manualLoadData
 })
 </script>
 
