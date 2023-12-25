@@ -537,13 +537,6 @@ const getItems = async () => {
     audioItem.value = data.data.results
     total.value = data.data.total
     totalLength.value = data.data.totalLength
-    setTimeout(() => {
-      for (const key in refs.value) {
-        if (refs.value[key]) {
-          refs.value[key].manualLoadData()
-        }
-      }
-    }, 0)
   } finally {
     isLoading.value = false
   }
@@ -569,6 +562,13 @@ const renameByPath = async () => {
       customName: currentSpeaker.value || undefined
     })
     await getItems()
+    setTimeout(() => {
+      for (const key in refs.value) {
+        if (refs.value[key]) {
+          refs.value[key].manualLoadData()
+        }
+      }
+    }, 0)
     openSuccessSnackBar('重命名成功')
   } finally {
     isLoading.value = false

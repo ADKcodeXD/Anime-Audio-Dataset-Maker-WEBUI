@@ -323,6 +323,10 @@ const getAudioTime = () => {
 }
 
 const loadData = async () => {
+  if (srcLink.value) {
+    URL.revokeObjectURL(srcLink.value)
+    srcLink.value = ''
+  }
   const data = await getResource(props.audioItem.source)
   const blob = new Blob([data.data], {
     type: 'aduio/wav'
