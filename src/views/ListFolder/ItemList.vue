@@ -206,7 +206,7 @@
     <div class="wrapper" :class="{ isLoading }">
       <AudioItems
         v-for="(item, index) in audioItem"
-        :key="item.source"
+        :key="`${item.source}_${index}`"
         :audio-item="item"
         :currentSpeaker="currentSpeaker || currentSpeakerParent"
         :type="type"
@@ -226,13 +226,17 @@
         :ref="(el) => setElementRef(el, index)"
       />
     </div>
-    <VPagination
-      class="w-full justify-self-start self-start"
-      variant="outlined"
-      v-model="params.page"
-      :length="length"
-      rounded="circle"
-    />
+    <div class="flex w-full">
+      <VPagination
+        class="justify-self-start self-start w-5/6"
+        variant="outlined"
+        v-model="params.page"
+        :length="length"
+        rounded="circle"
+      />
+      <VSelect v-model="params.pageSize" :items="pageSizes" label="Page Size" outlined dense />
+    </div>
+
     <v-dialog v-model="showComfirm" persistent max-width="290">
       <v-card>
         <v-card-title class="headline">确认操作</v-card-title>
@@ -286,7 +290,7 @@ const props = defineProps<{
 
 const params = reactive<PageParamsEntity>({
   page: 1,
-  pageSize: 100,
+  pageSize: 50,
   folderName: props.folderName,
   order: undefined
 })
@@ -309,6 +313,8 @@ const { openSnackBar, openSuccessSnackBar } = useGlobalStore()
 const length = computed(() => {
   return Math.ceil(total.value / params.pageSize)
 })
+
+const pageSizes = [10, 20, 50, 100]
 
 const checkedArrs = computed(() => {
   return audioItem.value?.filter((item) => item.isChecked) || []
@@ -345,14 +351,14 @@ const exportByBeryConfigFn = async () => {
     openSuccessSnackBar('导出成功')
     const blob = new Blob([data.data], {
       type: data.headers['Content-Type'] as any
-    }) // 这里就是创建一个a标签，等下用来模拟点击事件
-    const a = document.createElement('a') // 兼容webkix浏览器，处理webkit浏览器中href自动添加blob前缀，默认在浏览器打开而不是下载
-    const URL = window.URL || window.webkitURL // 根据解析后的blob对象创建URL 对象
-    const herf = URL.createObjectURL(blob) // 下载链接
-    a.href = herf // 下载文件名,如果后端没有返回，可以自己写a.download = '文件.pdf'
+    })
+    const a = document.createElement('a')
+    const URL = window.URL || window.webkitURL
+    const herf = URL.createObjectURL(blob)
+    a.href = herf
     a.download = `${props.folderName}.zip`
-    document.body.appendChild(a) // 点击a标签，进行下载
-    a.click() // 收尾工作，在内存中移除URL 对象
+    document.body.appendChild(a)
+    a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(herf)
   } finally {

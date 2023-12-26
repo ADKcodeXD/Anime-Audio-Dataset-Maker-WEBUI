@@ -123,7 +123,10 @@ export const getResource = (path: string) => {
   return httpClient({
     url: `/files/${path}`,
     method: 'GET',
-    responseType: 'arraybuffer'
+    responseType: 'arraybuffer',
+    headers: {
+      'Cache-Control': 'no-cache'
+    }
   })
 }
 
