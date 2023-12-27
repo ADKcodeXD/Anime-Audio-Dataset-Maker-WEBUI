@@ -104,6 +104,15 @@
                 :loading="isLoading"
                 thumb-label="always"
               ></v-slider>
+              <p class="mb-4 text-sm">minclustersize</p>
+              <v-slider
+                v-model="configTemp.pyannoteModelSetting.clustering.min_cluster_size"
+                :min="1"
+                :max="20"
+                :step="1"
+                :loading="isLoading"
+                thumb-label="always"
+              ></v-slider>
             </div>
             <div class="flex">
               <v-text-field
