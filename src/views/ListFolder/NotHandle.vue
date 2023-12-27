@@ -6,7 +6,13 @@
 
     <v-window v-model="activeTab" class="h-full">
       <v-window-item :value="item" class="h-full" v-for="(item, index) in folders" :key="item">
-        <ItemList :folder-name="item" type="notHandle" :myKey="index" :activeKey="index" />
+        <ItemList
+          :folders="folders"
+          :folder-name="item"
+          type="notHandle"
+          :myKey="index"
+          :activeKey="index"
+        />
       </v-window-item>
     </v-window>
   </div>

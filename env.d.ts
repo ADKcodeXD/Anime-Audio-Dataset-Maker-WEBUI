@@ -34,7 +34,7 @@ declare interface AudioOperate {
   paths?: string[]
   splitPoint?: number
   interval?: number
-  targetFolderName?: string
+  targetFolderPath?: string
 }
 
 declare interface AudioItems {

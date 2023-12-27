@@ -87,7 +87,7 @@
       >
         <v-list-item
           rounded="xl"
-          v-for="item in speakersFolders"
+          v-for="item in [...speakersFolders, ...(tempFolders || [])]"
           :key="item"
           :value="item"
           :disabled="item === currentSpeaker"
@@ -142,6 +142,7 @@ const props = defineProps<{
   type: 'notHandle' | 'handled'
   currentSpeaker?: string
   isLoopPlay?: boolean
+  tempFolders?: any[]
 }>()
 
 const emits = defineEmits([

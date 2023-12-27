@@ -91,7 +91,7 @@
             </template>
             <v-list color="" variant="plain" @click:select="(item) => moveToFolder(item.id)">
               <v-list-item
-                v-for="item in speakersFolders"
+                v-for="item in allFolders"
                 :key="item"
                 :value="item"
                 :disabled="(currentSpeaker || currentSpeakerParent) === item"
@@ -210,6 +210,7 @@
         :audio-item="item"
         :currentSpeaker="currentSpeaker || currentSpeakerParent"
         :type="type"
+        :temp-folders="folders"
         @up="focus(index - 1)"
         @down="focus(index + 1)"
         @ended="isContinuePlay ? focus(index + 1) : () => {}"
@@ -286,6 +287,7 @@ const props = defineProps<{
   currentSpeakerParent?: string
   myKey: number | string
   activeKey: number | string
+  folders?: any[]
 }>()
 
 const params = reactive<PageParamsEntity>({
@@ -307,12 +309,24 @@ const showComfirm = ref(false)
 const showBertExport = ref(false)
 const bertFile = ref(null)
 const currentPlayItem = ref({})
-const { speakersFolders } = storeToRefs(useGlobalStore())
+const { speakersFolders, config } = storeToRefs(useGlobalStore())
 const { openSnackBar, openSuccessSnackBar } = useGlobalStore()
 
 const length = computed(() => {
   return Math.ceil(total.value / params.pageSize)
 })
+
+const allFolders = computed(() => {
+  return [...speakersFolders.value, ...(props.folders || [])]
+})
+
+const getFolderPath = (fodlerName: string) => {
+  if (speakersFolders.value.includes(fodlerName))
+    return `${config.value.speakerFolderPath}/${fodlerName}`
+  else if (props.folders.includes(fodlerName)) {
+    return `${config.value.tempSlicePath}/${fodlerName}`
+  }
+}
 
 const pageSizes = [10, 20, 50, 100]
 
@@ -323,12 +337,6 @@ const checkedArrs = computed(() => {
 const currentAudio = ref({
   time: 0,
   seekable: [0, 0]
-})
-
-watchEffect(() => {
-  if (checkedArrs.value.length === 1) {
-    updateTime()
-  }
 })
 
 const updateTime = () => {
@@ -392,9 +400,10 @@ const receive = async (item: AudioItems) => {
     if (audioItem.value[focusItemIndex] && refs.value[focusItemIndex]) {
       focusItem = refs.value[focusItemIndex]
     }
+    const folderPath = getFolderPath(currentSpeaker.value)
     await moveAudio({
       paths: [item.source],
-      targetFolderName: currentSpeaker.value
+      targetFolderPath: folderPath
     })
     openSuccessSnackBar('操作成功')
     await getItems()
@@ -436,9 +445,10 @@ const mergeAudioFn = async () => {
 const moveAll = async () => {
   try {
     isLoading.value = true
+    const folderPath = getFolderPath(currentSpeaker.value)
     await moveAudio({
       paths: audioItem.value.map((item) => item.source),
-      targetFolderName: currentSpeaker.value
+      targetFolderPath: folderPath
     })
     await getItems()
   } finally {
@@ -449,9 +459,10 @@ const moveAll = async () => {
 const moveToFolder = async (targetFolderName) => {
   try {
     isLoading.value = true
+    const folderPath = getFolderPath(targetFolderName)
     await moveAudio({
       paths: checkedArrs.value.map((item) => item.source),
-      targetFolderName
+      targetFolderPath: folderPath
     })
     openSuccessSnackBar('移动成功')
     await getItems()
@@ -463,7 +474,8 @@ const moveToFolder = async (targetFolderName) => {
 const moveSingleAudio = async ({ source, targetFolderName }) => {
   isLoading.value = true
   try {
-    await moveAudio({ paths: [source], targetFolderName })
+    const folderPath = getFolderPath(targetFolderName)
+    await moveAudio({ paths: [source], targetFolderPath: folderPath })
     openSuccessSnackBar('移动成功')
     await getItems()
   } finally {
@@ -611,6 +623,11 @@ watchDebounced(params, getItems, { debounce: 300, immediate: false })
 watchEffect(() => {
   if (props.activeKey === props.myKey) {
     getItems()
+  }
+})
+watchEffect(() => {
+  if (checkedArrs.value.length === 1) {
+    updateTime()
   }
 })
 </script>
