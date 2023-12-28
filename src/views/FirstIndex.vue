@@ -18,17 +18,18 @@
           <NotHandle v-if="activeTab === 'notHandle'" />
         </v-window-item>
         <v-window-item value="alreadyHandle" class="h-full">
-          <Handled v-if="activeTab === 'alreadyHandle'" />
+          <HandledData v-if="activeTab === 'alreadyHandle'" />
         </v-window-item>
       </v-window>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { useGlobalStore } from '@/stores/store'
 import SliceUpload from '@/views/SliceUpload/SliceUpload.vue'
 import NotHandle from '@/views/ListFolder/NotHandle.vue'
-import Handled from '@/views/ListFolder/Handled.vue'
+import HandledData from '@/views/ListFolder/HandledData.vue'
 
 const activeTab = ref('sliceUpload')
 const { getConfigAndSave, getAllHandledFolders } = useGlobalStore()

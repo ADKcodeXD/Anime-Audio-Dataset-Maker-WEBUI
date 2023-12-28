@@ -22,22 +22,33 @@ export const getConfig = () => {
   })
 }
 
-export const createFolder = (name: string) => {
+export const createFolder = (folderPath: string) => {
   return httpClient({
     url: '/createFolder',
     method: 'POST',
     data: {
-      folderName: name
+      folderPath: folderPath
     }
   })
 }
 
-export const deleteSpeakerFolder = (name: string) => {
+export const renameFolder = (oldFolderPath: string, newFolderName: string) => {
   return httpClient({
-    url: '/deleteSpeakerFolder',
+    url: '/renameFolder',
     method: 'POST',
     data: {
-      folderName: name
+      oldFolderPath,
+      newFolderName
+    }
+  })
+}
+
+export const deleteFolder = (path: string) => {
+  return httpClient({
+    url: '/deleteFolder',
+    method: 'POST',
+    data: {
+      folderPath: path
     }
   })
 }
@@ -90,6 +101,14 @@ export const listAllTempAudioItems = (params: PageParamsEntity) => {
 export const listAllHandledAudioItems = (params: PageParamsEntity) => {
   return httpClient({
     url: '/listAllHandledAudioItems',
+    method: 'POST',
+    data: params
+  })
+}
+
+export const listAllAudioByFolderPath = (params: PageParamsEntity) => {
+  return httpClient({
+    url: '/listAllAudioByFolderPath',
     method: 'POST',
     data: params
   })

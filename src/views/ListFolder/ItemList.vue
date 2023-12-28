@@ -279,6 +279,7 @@
 </template>
 
 <script setup lang="ts">
+import { listAllAudioByFolderPath } from '@/api'
 import { useGlobalStore } from '@/stores/store'
 
 const props = defineProps<{
@@ -288,12 +289,14 @@ const props = defineProps<{
   myKey: number | string
   activeKey: number | string
   folders?: any[]
+  folderPath: string
 }>()
 
 const params = reactive<PageParamsEntity>({
   page: 1,
   pageSize: 50,
   folderName: props.folderName,
+  folderPath: props.folderPath,
   order: undefined
 })
 
@@ -532,13 +535,8 @@ const shiftSelect = (item2) => {
 const getItems = async () => {
   try {
     isLoading.value = true
-    let api
-    if (props.type === 'notHandle') {
-      api = listAllTempAudioItems(params)
-    } else {
-      api = listAllHandledAudioItems(params)
-    }
-    const { data } = await api
+
+    const { data } = await listAllAudioByFolderPath(params)
     if (audioItem.value.length > 0) {
       // compare two results and remain the checked state
       data.data.results.forEach((item) => {
@@ -611,7 +609,6 @@ const formatDuration = (milliseconds) => {
   seconds = seconds % 60
   minutes = minutes % 60
 
-  // 补零以保持 hh:mm:ss 格式
   const hoursStr = hours.toString().padStart(2, '0')
   const minutesStr = minutes.toString().padStart(2, '0')
   const secondsStr = seconds.toString().padStart(2, '0')

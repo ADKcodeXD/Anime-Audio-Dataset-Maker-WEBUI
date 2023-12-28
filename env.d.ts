@@ -24,7 +24,8 @@ declare interface ConfigType {
 declare interface PageParamsEntity {
   page?: number
   pageSize?: number
-  folderName: string
+  folderName?: string
+  folderPath?: string
   keyword?: string
   order?: 'ascend' | 'descend' | undefined
 }

@@ -7,7 +7,7 @@ export const useGlobalStore = defineStore('global', () => {
   const snackBar = ref(false)
   const snackText = ref('')
   const successSnackBar = ref(false)
-  const snackTextSuccess = ref(false)
+  const snackTextSuccess = ref('')
 
   const getConfigAndSave = async () => {
     const { data } = await getConfig()

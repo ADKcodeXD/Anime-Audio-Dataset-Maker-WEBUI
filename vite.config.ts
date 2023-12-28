@@ -21,7 +21,7 @@ export default defineConfig({
     UnoCSS(),
     AutoImport({
       dts: true,
-      dirs: ['src/api'],
+      dirs: ['src/api', 'src/composables'],
       imports: [
         'vue',
         'vue-router',

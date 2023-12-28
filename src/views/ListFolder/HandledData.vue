@@ -1,7 +1,12 @@
 <template>
   <div class="wrapper h-full w-full">
     <v-tabs v-if="speakersFolders.length > 0" v-model:model-value="activeTab" :disabled="isLoading">
-      <v-tab v-for="tab in speakersFolders" :key="tab" append-icon="mdi-close-circle-outline">
+      <v-tab
+        v-for="tab in speakersFolders"
+        :key="tab"
+        append-icon="mdi-close-circle-outline"
+        @contextmenu.prevent="(e) => openContextMenu(e, tab)"
+      >
         <template #append>
           <v-icon icon="mdi-close-circle-outline" @click.stop="deleteTab(tab)"></v-icon> </template
         >{{ tab }}</v-tab
@@ -31,6 +36,7 @@
           type="handled"
           :key="item"
           :current-speaker-parent="item"
+          :folder-path="`${config.speakerFolderPath}/${item}`"
           :active-key="activeTab"
           :my-key="index"
         />
@@ -77,6 +83,36 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-menu
+      v-model="contextMenu.visible"
+      :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+      absolute
+    >
+      <v-list>
+        <v-list-item @click="renameFolderFn(contextMenu.folder)">
+          <v-list-item-title>重命名</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+    <v-dialog v-model="renameDialog" max-width="300px">
+      <v-card>
+        <v-card-title class="headline">重命名文件夹</v-card-title>
+        <v-card-text>
+          <v-text-field
+            label="新的文件夹名称"
+            v-model="newFolderName"
+            :rules="[(v) => !!v || '名称不能为空']"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" @click="renameDialog = false">取消</v-btn>
+          <v-btn color="green" @click="confirmRename">确认</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -85,44 +121,43 @@ import { useGlobalStore } from '@/stores/store'
 import ItemList from './ItemList.vue'
 
 const activeTab = ref(0)
-const dialog = ref(false)
-const folderName = ref('')
-const isLoading = ref(false)
-const showConfirmDialog = ref(false)
-const folderToDelete = ref('')
 
 const { getAllHandledFolders } = useGlobalStore()
-const { speakersFolders } = storeToRefs(useGlobalStore())
+const { speakersFolders, config } = storeToRefs(useGlobalStore())
+const isLoading = ref(false)
 
-const openCreator = () => {
-  dialog.value = true
-}
+const { renameDialog, newFolderName, renameFolderFn, confirmRename } = useRenameFolder(
+  config.value.speakerFolderPath,
+  getAllHandledFolders,
+  isLoading
+)
 
-const createFolderFn = async () => {
-  isLoading.value = true
-  try {
-    await createFolder(folderName.value)
-    await getAllHandledFolders()
-    dialog.value = false
-    folderName.value = ''
-  } finally {
-    isLoading.value = false
-  }
-}
+const { createFolderFn, folderName, dialog, openCreator } = useCreateFolder(
+  config.value.speakerFolderPath,
+  getAllHandledFolders,
+  isLoading
+)
 
-const deleteTab = (folderName) => {
-  folderToDelete.value = folderName
-  showConfirmDialog.value = true
-}
+const { showConfirmDialog, confirmDelete, deleteTab } = useDeleteFolder(
+  config.value.speakerFolderPath,
+  getAllHandledFolders,
+  isLoading
+)
 
-const confirmDelete = async () => {
-  showConfirmDialog.value = false
-  isLoading.value = true
-  try {
-    await deleteSpeakerFolder(folderToDelete.value)
-    await getAllHandledFolders()
-  } finally {
-    isLoading.value = false
+const contextMenu = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  folder: ''
+})
+
+// 打开上下文菜单
+const openContextMenu = (event, folder) => {
+  contextMenu.value = {
+    visible: true,
+    x: event.clientX,
+    y: event.clientY,
+    folder: folder
   }
 }
 
